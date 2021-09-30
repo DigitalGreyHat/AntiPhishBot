@@ -40,7 +40,7 @@ python bot.py
   
 ## Authors
 
-- fx_64b
+- f_x64b
 
   
 ## Contributing
