@@ -1,7 +1,9 @@
+#default imports
 import logging
 import os
 import signal
 
+#Python-Telegram-Bot library
 from telegram import InlineKeyboardButton, InlineKeyboardMarkup, Update
 from telegram.ext import Updater, Filters, CommandHandler, MessageHandler, CallbackQueryHandler, CallbackContext
 from telegram.ext import CommandHandler, MessageHandler, Filters, ConversationHandler
@@ -17,7 +19,7 @@ logger = logging.getLogger(__name__)
 
 #Configs
 TOKEN = "YOUR_TG_BOT_TOKEN" #Get a token from the bot_father bot!
-INPUT_FIELD, CHECK_URL = range(3)
+INPUT_FIELD, CHECK_URL, BULK_CHECK_URL = range(3)
 
 def check_url(update, context):
     print(update.message.text)
@@ -28,6 +30,22 @@ def check_url(update, context):
     else:
         text_msg = "*𝐒𝐈𝐍𝐆𝐋𝐄 𝐂𝐇𝐄𝐂𝐊𝐈𝐍𝐆 𝐑𝐄𝐒𝐔𝐋𝐓*\n\n*🌍 URL:* {}\n*ℹ️ Status:* *🔴 (PHISHING)*".format(update.message.text)    
     context.bot.send_message(chat_id=update.message.chat_id, text=text_msg, parse_mode='markdown')
+    templates(update, context)
+    return ConversationHandler.END
+def bulk_check_url(update, context):
+    url_list = update.message.text
+    result_template = "\n\n*🌍 URL:* {}\n*ℹ️ Status:* {}"
+    final_msg = "*𝐁𝐔𝐋𝐊 𝐂𝐇𝐄𝐂𝐊𝐈𝐍𝐆 𝐑𝐄𝐒𝐔𝐋𝐓𝐒*" #Was not sure wich font you used!?
+    detected_msg = "*🔴 (PHISHING)*"
+    not_detected_msg = "*🟢 (𝙲𝙻𝙴𝙰𝙽)*"
+    for url in url_list.split('\n'):
+        result = check_if_red(url)
+        if(result == False):
+            final_msg += result_template.format(url, not_detected_msg)
+        else:
+            final_msg += result_template.format(url, detected_msg)
+
+    context.bot.send_message(chat_id=update.message.chat_id, text=final_msg, parse_mode='markdown', disable_web_page_preview=True)
     templates(update, context)
     return ConversationHandler.END
     
@@ -52,7 +70,6 @@ def start(update: Update, context: CallbackContext):
         first_name  = update.message.from_user.first_name
         reply = 'Hi {}, welcome to AntiPishBot.\n\nThis bot is checking url/s for phishing detection.\n\n🐍This bot is currently in beta. To use the bot please enter /dev'.format(first_name)
         bot.send_message(chat_id = update.effective_chat.id, text = reply)
-
 
 def templates(update: Update, context: CallbackContext):
     bot: Bot = context.bot
@@ -87,15 +104,19 @@ def button(update, context):
     choosed_button = query.data
     if(choosed_button == 'checkURL'):
         keyboard = [[
-        InlineKeyboardButton("Single Mode", callback_data='checkSingleURL')]]
+        InlineKeyboardButton("Single Mode", callback_data='checkSingleURL')
+    ], [InlineKeyboardButton("Bulk Mode", callback_data='checkBulkURL')]]
         
         choose_keyboard = InlineKeyboardMarkup(keyboard)
-        query.edit_message_text('Please choose a mode to check your URL/URLs! (currently only singel mode)', reply_markup=choose_keyboard)
+        query.edit_message_text('Please choose a mode to check your URL/URLs!', reply_markup=choose_keyboard)
         pass
         
     elif(choosed_button == 'checkSingleURL'):
         query.edit_message_text(text='Enter URL:')
         return CHECK_URL
+    elif(choosed_button == 'checkBulkURL'):
+        query.edit_message_text(text='Enter your URL List (1 line = 1 URL):')
+        return BULK_CHECK_URL
     elif(choosed_button == 'devInfo'):
         query.edit_message_text(text='*Developers*\nMain Dev: @BHM\n\nGo back: /dev', parse_mode='markdown')
         pass
@@ -129,6 +150,7 @@ def main():
     states={
         INPUT_FIELD: [MessageHandler(Filters.text & ~Filters.command, input_field)],
         CHECK_URL: [MessageHandler(Filters.text & ~Filters.command, check_url)],
+        BULK_CHECK_URL: [MessageHandler(Filters.text & ~Filters.command, bulk_check_url)],
     },
     fallbacks=[CommandHandler('cancel', cancel)]
 )
