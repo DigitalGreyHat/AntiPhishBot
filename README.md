@@ -41,6 +41,7 @@ python bot.py
 ## Authors
 
 - f_x64b
+- DigitalGrayHat
 
   
 ## Contributing
