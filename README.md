@@ -40,8 +40,8 @@ python bot.py
   
 ## Authors
 
-- f_x64b
-- DigitalGreyHat
+- @fx64b
+- @DigitalGreyHat
 
   
 ## Contributing
