@@ -1,7 +1,3 @@
-
-![Logo](https://i.ibb.co/VmKY1sH/Microsoft-Teams-image-1.png)
-
-    
 # AntiPhish Bot
 
 AntiPhish Bot is a simple to-use telegram bot. Send an URL to the bot and the bot checks if the URL is a phishing site!
